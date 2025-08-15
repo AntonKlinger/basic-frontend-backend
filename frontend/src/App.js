@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
-// Beispiel-Daten für das Diagramm
+// Beispiel-Daten fürs Diagramm
 const daten = [
   { name: "Jan", nachrichten: 5 },
   { name: "Feb", nachrichten: 8 },
@@ -11,7 +11,7 @@ const daten = [
 ];
 
 function App() {
-  const [mode, setMode] = useState("login"); // login oder register
+  const [mode, setMode] = useState("login");                 // "login" | "register"
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState(localStorage.getItem("token") || "");
@@ -21,39 +21,57 @@ function App() {
   const [alter, setAlter] = useState("");
   const [groesse, setGroesse] = useState("");
 
+  // Sparziel (Zahl) – wird pro User gespeichert
   const [sparziel, setSparziel] = useState("");
 
+  // Positionen (unter dem Diagramm)
+  const [positionen, setPositionen] = useState([]);
+  const [posName, setPosName] = useState("");
+  const [posWert, setPosWert] = useState("");
+
+  // -------------------- Effects --------------------
   useEffect(() => {
     if (token) {
       fetchNachrichten();
       fetchSparziel();
+      fetchPositionen();
     }
   }, [token]);
 
-  // --- Nachrichten laden ---
+  // -------------------- API Helpers --------------------
+  const authHeader = () => ({ Authorization: `Bearer ${token}` });
+
+  const handleApiError = (err) => {
+    console.error(err.response?.data || err.message);
+    if (err.response?.status === 401) {
+      alert("Token ungültig oder abgelaufen. Bitte neu einloggen.");
+      handleLogout();
+    }
+  };
+
+  // -------------------- Loaders --------------------
   const fetchNachrichten = () => {
     axios
-      .get("http://127.0.0.1:8000/api/nachrichten/", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get("http://127.0.0.1:8000/api/nachrichten/", { headers: authHeader() })
       .then((res) => setNachrichten(res.data))
-      .catch((err) => {
-        console.error(err.response?.data || err.message);
-        if (err.response?.status === 401) handleLogout();
-      });
+      .catch(handleApiError);
   };
 
-  // --- Sparziel laden ---
   const fetchSparziel = () => {
     axios
-      .get("http://127.0.0.1:8000/api/sparziel/", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setSparziel(res.data.betrag || ""))
-      .catch((err) => console.error(err.response?.data || err.message));
+      .get("http://127.0.0.1:8000/api/sparziel/", { headers: authHeader() })
+      .then((res) => setSparziel(res.data?.betrag ?? ""))
+      .catch(handleApiError);
   };
 
-  // --- Registrierung ---
+  const fetchPositionen = () => {
+    axios
+      .get("http://127.0.0.1:8000/api/positionen/", { headers: authHeader() })
+      .then((res) => setPositionen(res.data))
+      .catch(handleApiError);
+  };
+
+  // -------------------- Auth --------------------
   const handleRegister = (e) => {
     e.preventDefault();
     axios
@@ -62,13 +80,9 @@ function App() {
         alert("Registrierung erfolgreich! Bitte einloggen.");
         setMode("login");
       })
-      .catch((err) => {
-        console.error(err.response?.data || err.message);
-        alert("Registrierung fehlgeschlagen");
-      });
+      .catch(() => alert("Registrierung fehlgeschlagen"));
   };
 
-  // --- Login ---
   const handleLogin = (e) => {
     e.preventDefault();
     axios
@@ -78,21 +92,18 @@ function App() {
         localStorage.setItem("token", accessToken);
         setToken(accessToken);
       })
-      .catch((err) => {
-        console.error(err.response?.data || err.message);
-        alert("Login fehlgeschlagen!");
-      });
+      .catch(() => alert("Login fehlgeschlagen!"));
   };
 
-  // --- Logout ---
   const handleLogout = () => {
     localStorage.removeItem("token");
     setToken("");
     setNachrichten([]);
     setSparziel("");
+    setPositionen([]);
   };
 
-  // --- Nachricht senden ---
+  // -------------------- Create/Update --------------------
   const handleSubmitNachricht = (e) => {
     e.preventDefault();
     axios
@@ -103,7 +114,7 @@ function App() {
           alter: alter ? parseInt(alter, 10) : null,
           groesse: groesse ? parseFloat(groesse) : null,
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: authHeader() }
       )
       .then((res) => {
         setNachrichten([res.data, ...nachrichten]);
@@ -111,29 +122,48 @@ function App() {
         setAlter("");
         setGroesse("");
       })
-      .catch((err) => {
-        console.error(err.response?.data || err.message);
-        alert("Fehler beim Senden der Nachricht");
-      });
+      .catch(() => alert("Fehler beim Senden der Nachricht"));
   };
 
-  // --- Sparziel senden ---
   const handleSubmitSparziel = (e) => {
     e.preventDefault();
+    const wert = sparziel === "" ? null : parseFloat(sparziel);
+    if (wert !== null && Number.isNaN(wert)) {
+      alert("Bitte eine gültige Zahl für das Sparziel eingeben.");
+      return;
+    }
     axios
       .post(
         "http://127.0.0.1:8000/api/sparziel/",
-        { betrag: parseFloat(sparziel) },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { betrag: wert },
+        { headers: authHeader() }
       )
-      .then((res) => alert("Sparziel gespeichert!"))
-      .catch((err) => {
-        console.error(err.response?.data || err.message);
-        alert("Fehler beim Speichern des Sparziels");
-      });
+      .then((res) => setSparziel(res.data?.betrag ?? ""))
+      .catch(() => alert("Fehler beim Speichern des Sparziels"));
   };
 
-  // --- UI ---
+  const handleAddPosition = (e) => {
+    e.preventDefault();
+    const wert = posWert === "" ? null : parseFloat(posWert);
+    if (!posName.trim() || wert === null || Number.isNaN(wert)) {
+      alert("Bitte Name und eine gültige Zahl für den Wert eingeben.");
+      return;
+    }
+    axios
+      .post(
+        "http://127.0.0.1:8000/api/positionen/",
+        { name: posName.trim(), wert },
+        { headers: authHeader() }
+      )
+      .then((res) => {
+        setPositionen([res.data, ...positionen]);
+        setPosName("");
+        setPosWert("");
+      })
+      .catch(() => alert("Fehler beim Hinzufügen der Position"));
+  };
+
+  // -------------------- UI --------------------
   if (!token) {
     return (
       <div style={{ padding: "2rem" }}>
@@ -153,10 +183,14 @@ function App() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <br />
-          <button type="submit">{mode === "login" ? "Login" : "Registrieren"}</button>
+          <button type="submit">
+            {mode === "login" ? "Login" : "Registrieren"}
+          </button>
         </form>
         <button onClick={() => setMode(mode === "login" ? "register" : "login")}>
-          {mode === "login" ? "Noch kein Konto? Registrieren" : "Schon registriert? Login"}
+          {mode === "login"
+            ? "Noch kein Konto? Registrieren"
+            : "Schon registriert? Login"}
         </button>
       </div>
     );
@@ -167,18 +201,23 @@ function App() {
       <h1>Willkommen! Du bist eingeloggt.</h1>
       <button onClick={handleLogout}>Logout</button>
 
-      {/* Sparziel */}
-      <h2>Sparziel</h2>
-      <form onSubmit={handleSubmitSparziel}>
-        <input
-          type="number"
-          step="0.01"
-          placeholder="Sparziel"
-          value={sparziel}
-          onChange={(e) => setSparziel(e.target.value)}
-        />
-        <button type="submit">Speichern</button>
-      </form>
+      {/* Sparziel – direkt unter dem Logout-Button */}
+      <div style={{ marginTop: "1.5rem" }}>
+        <h2>Sparziel</h2>
+        <form onSubmit={handleSubmitSparziel}>
+          <input
+            type="number"
+            step="0.01"
+            placeholder="Sparziel (Zahl)"
+            value={sparziel}
+            onChange={(e) => setSparziel(e.target.value)}
+          />
+          <button type="submit" style={{ marginLeft: "0.5rem" }}>
+            Speichern
+          </button>
+        </form>
+        {sparziel !== "" && <p>Aktuelles Sparziel: {sparziel}</p>}
+      </div>
 
       {/* Diagramm */}
       <div style={{ marginTop: "2rem" }}>
@@ -191,6 +230,36 @@ function App() {
           <Legend />
           <Bar dataKey="nachrichten" fill="#8884d8" />
         </BarChart>
+      </div>
+
+      {/* Positionen – unter dem Diagramm */}
+      <div style={{ marginTop: "2rem" }}>
+        <h2>Positionen</h2>
+        <form onSubmit={handleAddPosition}>
+          <input
+            type="text"
+            placeholder="Positionsname"
+            value={posName}
+            onChange={(e) => setPosName(e.target.value)}
+          />
+          <br />
+          <input
+            type="number"
+            step="0.01"
+            placeholder="Wert"
+            value={posWert}
+            onChange={(e) => setPosWert(e.target.value)}
+          />
+        <br />
+          <button type="submit">Hinzufügen</button>
+        </form>
+        <ul>
+          {positionen.map((p) => (
+            <li key={p.id}>
+              {p.name} — {p.wert}
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Nachricht erstellen */}
@@ -223,7 +292,6 @@ function App() {
 
       <hr />
 
-      {/* Nachrichtenliste */}
       <ul>
         {nachrichten.map((n) => (
           <li key={n.id}>

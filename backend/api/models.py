@@ -13,3 +13,12 @@ class Sparziel(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: {self.betrag}"
+    
+class Position(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Jeder User hat eigene Positionen
+    name = models.CharField(max_length=100)
+    wert = models.FloatField()
+    erstellt_am = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.wert}"

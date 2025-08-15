@@ -12,6 +12,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from .models import Position
+from .serializers import PositionSerializer
+
 class RegisterSerializer(ModelSerializer):
     class Meta:
         model = User
@@ -51,3 +54,15 @@ class SparzielView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
+    
+class PositionViewSet(viewsets.ModelViewSet):
+    serializer_class = PositionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Nur die Positionen des eingeloggten Users zurückgeben
+        return Position.objects.filter(user=self.request.user).order_by('-erstellt_am')
+
+    def perform_create(self, serializer):
+        # Beim Erstellen automatisch den aktuellen User zuordnen
+        serializer.save(user=self.request.user)
