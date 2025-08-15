@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from 'recharts';
+
 
 // Beispiel-Daten fürs Diagramm
 const daten = [
@@ -166,7 +167,7 @@ function App() {
   // -------------------- UI --------------------
   if (!token) {
     return (
-      <div style={{ padding: "2rem" }}>
+      <div style={styles.container}>
         <h1>{mode === "login" ? "Login" : "Registrierung"}</h1>
         <form onSubmit={mode === "login" ? handleLogin : handleRegister}>
           <input
@@ -174,6 +175,7 @@ function App() {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            style={styles.input}
           />
           <br />
           <input
@@ -181,13 +183,14 @@ function App() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            style={styles.input}
           />
           <br />
-          <button type="submit">
+          <button type="submit" style={styles.button}>
             {mode === "login" ? "Login" : "Registrieren"}
           </button>
         </form>
-        <button onClick={() => setMode(mode === "login" ? "register" : "login")}>
+        <button onClick={() => setMode(mode === "login" ? "register" : "login")} style={styles.button}>
           {mode === "login"
             ? "Noch kein Konto? Registrieren"
             : "Schon registriert? Login"}
@@ -197,9 +200,9 @@ function App() {
   }
 
   return (
-    <div style={{ padding: "2rem" }}>
+    <div style={styles.container}>
       <h1>Willkommen! Du bist eingeloggt.</h1>
-      <button onClick={handleLogout}>Logout</button>
+      <button onClick={handleLogout} style={styles.button}>Logout</button>
 
       {/* Sparziel – direkt unter dem Logout-Button */}
       <div style={{ marginTop: "1.5rem" }}>
@@ -211,8 +214,9 @@ function App() {
             placeholder="Sparziel (Zahl)"
             value={sparziel}
             onChange={(e) => setSparziel(e.target.value)}
+            style={styles.input}
           />
-          <button type="submit" style={{ marginLeft: "0.5rem" }}>
+          <button type="submit" style={styles.button}>
             Speichern
           </button>
         </form>
@@ -220,16 +224,23 @@ function App() {
       </div>
 
       {/* Diagramm */}
-      <div style={{ marginTop: "2rem" }}>
-        <h2>Nachrichten pro Monat</h2>
-        <BarChart width={500} height={300} data={daten}>
+      <div style={{ marginTop: "30px" }}>
+        <h2 style={styles.subtitle}>Nachrichten pro Monat</h2>
+        <LineChart width={500} height={300} data={daten}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
+          <XAxis dataKey="name" stroke="#fff" />
+          <YAxis stroke="#fff" domain={[0, sparziel + 100 || 'auto']} />
           <Tooltip />
           <Legend />
-          <Bar dataKey="nachrichten" fill="#8884d8" />
-        </BarChart>
+          
+          {/* Deine normale Datenlinie */}
+          <Line type="monotone" dataKey="nachrichten" stroke="green" strokeWidth={3} />
+          
+          {/* Hier fügst du die Sparziel-Linie ein */}
+          {sparziel && (
+            <ReferenceLine y={sparziel} stroke="red" strokeDasharray="3 3" label="Sparziel" />
+          )}
+        </LineChart>
       </div>
 
       {/* Positionen – unter dem Diagramm */}
@@ -241,6 +252,7 @@ function App() {
             placeholder="Positionsname"
             value={posName}
             onChange={(e) => setPosName(e.target.value)}
+            style={styles.input}
           />
           <br />
           <input
@@ -249,9 +261,10 @@ function App() {
             placeholder="Wert"
             value={posWert}
             onChange={(e) => setPosWert(e.target.value)}
+            style={styles.input}
           />
         <br />
-          <button type="submit">Hinzufügen</button>
+          <button style={styles.button} type="submit">Hinzufügen</button>
         </form>
         <ul>
           {positionen.map((p) => (
@@ -270,6 +283,7 @@ function App() {
           placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          style={styles.input}
         />
         <br />
         <input
@@ -277,6 +291,7 @@ function App() {
           placeholder="Alter"
           value={alter}
           onChange={(e) => setAlter(e.target.value)}
+          style={styles.input}
         />
         <br />
         <input
@@ -285,9 +300,10 @@ function App() {
           placeholder="Größe"
           value={groesse}
           onChange={(e) => setGroesse(e.target.value)}
+          style={styles.input}
         />
         <br />
-        <button type="submit">Absenden</button>
+        <button type="submit" style={styles.button}>Absenden</button>
       </form>
 
       <hr />
@@ -304,5 +320,24 @@ function App() {
     </div>
   );
 }
+
+const styles = {
+  container: {
+    backgroundColor: "#222831",
+    color: "#fff",
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "2rem",
+  },
+  title: { fontSize: "2rem", marginBottom: "1rem" },
+  subtitle: { fontSize: "1.5rem", marginBottom: "1rem" },
+  form: { display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" },
+  input: { padding: "10px", borderRadius: "5px", border: "1px solid #ccc", width: "250px" },
+  button: { padding: "10px 20px", border: "none", borderRadius: "5px", background: "#1e90ff", color: "#fff", cursor: "pointer" },
+  linkButton: { marginTop: "10px", background: "none", border: "none", color: "#1e90ff", cursor: "pointer" },
+  listItem: { padding: "5px 0", borderBottom: "1px solid #333" },
+};
 
 export default App;
