@@ -145,3 +145,18 @@ React Frontend erstellen:
 5.
 
     npm start
+
+
+
+
+Django:
+
+Backend starten:
+
+    python manage.py runserver
+
+Datenbank abrufen:
+
+    http://127.0.0.1:8000/admin/
+    username: anton123
+    passwort: ...
