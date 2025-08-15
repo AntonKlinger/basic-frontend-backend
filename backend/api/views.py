@@ -26,6 +26,6 @@ class RegisterView(generics.CreateAPIView):
 
 
 class NachrichtViewSet(viewsets.ModelViewSet):
-    queryset = Nachricht.objects.all()
+    queryset = Nachricht.objects.all().order_by('-erstellt_am')
     serializer_class = NachrichtSerializer
     permission_classes = [permissions.IsAuthenticated]  # nur eingeloggte User

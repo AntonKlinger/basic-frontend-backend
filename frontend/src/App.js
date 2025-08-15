@@ -2,40 +2,39 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 function App() {
+  const [mode, setMode] = useState("login"); // "login" oder "register"
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState(localStorage.getItem("token") || "");
-
   const [nachrichten, setNachrichten] = useState([]);
   const [name, setName] = useState("");
   const [alter, setAlter] = useState("");
   const [groesse, setGroesse] = useState("");
 
-  // Nachrichten laden
   useEffect(() => {
+    console.log("Aktueller Token:", token);
     if (token) {
-      axios
-        .get("http://127.0.0.1:8000/api/nachrichten/", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((res) => setNachrichten(res.data))
-        .catch(() => {
-          alert("Token ungültig oder abgelaufen. Bitte neu einloggen.");
-          handleLogout();
-        });
+      fetchNachrichten();
     }
   }, [token]);
 
-  // Login
-  const handleLogin = (e) => {
-    e.preventDefault();
+  // Nachrichten laden
+  const fetchNachrichten = () => {
     axios
-      .post("http://127.0.0.1:8000/api/token/", { username, password })
-      .then((res) => {
-        localStorage.setItem("token", res.data.access);
-        setToken(res.data.access);
+      .get("http://127.0.0.1:8000/api/nachrichten/", {
+        headers: { Authorization: `Bearer ${token}` },
       })
-      .catch(() => alert("Login fehlgeschlagen"));
+      .then((res) => {
+        console.log("GET Nachrichten:", res.data);
+        setNachrichten(res.data);
+      })
+      .catch((err) => {
+        console.error("Fehler beim Laden:", err.response?.data || err.message);
+        if (err.response?.status === 401) {
+          alert("Token ungültig oder abgelaufen. Bitte neu einloggen.");
+          handleLogout();
+        }
+      });
   };
 
   // Registrierung
@@ -43,32 +42,32 @@ function App() {
     e.preventDefault();
     axios
       .post("http://127.0.0.1:8000/api/register/", { username, password })
-      .then(() => alert("Registrierung erfolgreich, jetzt einloggen."))
-      .catch(() => alert("Registrierung fehlgeschlagen"));
+      .then((res) => {
+        console.log("Register Response:", res.data);
+        alert("Registrierung erfolgreich! Bitte einloggen.");
+        setMode("login");
+      })
+      .catch((err) => {
+        console.error("Register Fehler:", err.response?.data || err.message);
+        alert("Registrierung fehlgeschlagen");
+      });
   };
 
-  // Neue Nachricht absenden
-  const handleSubmitNachricht = (e) => {
+  // Login
+  const handleLogin = (e) => {
     e.preventDefault();
     axios
-      .post(
-        "http://127.0.0.1:8000/api/nachrichten/",
-        {
-          name,
-          alter: parseInt(alter, 10),
-          groesse: parseFloat(groesse),
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
+      .post("http://127.0.0.1:8000/api/token/", { username, password })
       .then((res) => {
-        setNachrichten([res.data, ...nachrichten]);
-        setName("");
-        setAlter("");
-        setGroesse("");
+        console.log("Login Response:", res.data);
+        const accessToken = res.data.access;
+        localStorage.setItem("token", accessToken);
+        setToken(accessToken);
       })
-      .catch(() => alert("Fehler beim Senden"));
+      .catch((err) => {
+        console.error("Login Fehler:", err.response?.data || err.message);
+        alert("Login fehlgeschlagen!");
+      });
   };
 
   // Logout
@@ -78,91 +77,104 @@ function App() {
     setNachrichten([]);
   };
 
-  // Wenn nicht eingeloggt: Login & Registrierung anzeigen
+  // Nachricht senden
+  const handleSubmitNachricht = (e) => {
+    e.preventDefault();
+    axios
+      .post(
+        "http://127.0.0.1:8000/api/nachrichten/",
+        {
+          name,
+          alter: alter ? parseInt(alter, 10) : null,
+          groesse: groesse ? parseFloat(groesse) : null,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      .then((res) => {
+        console.log("Nachricht erstellt:", res.data);
+        setNachrichten([res.data, ...nachrichten]);
+        setName("");
+        setAlter("");
+        setGroesse("");
+      })
+      .catch((err) => {
+        console.error("POST Fehler:", err.response?.data || err.message);
+        alert("Fehler beim Senden der Nachricht");
+      });
+  };
+
+  // --- UI ---
   if (!token) {
     return (
       <div style={{ padding: "2rem" }}>
-        <h2>Registrieren</h2>
-        <form onSubmit={handleRegister}>
+        <h1>{mode === "login" ? "Login" : "Registrierung"}</h1>
+        <form onSubmit={mode === "login" ? handleLogin : handleRegister}>
           <input
             type="text"
-            placeholder="Benutzername"
+            placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            required
           />
+          <br />
           <input
             type="password"
-            placeholder="Passwort"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
           />
-          <button type="submit">Registrieren</button>
+          <br />
+          <button type="submit">{mode === "login" ? "Login" : "Registrieren"}</button>
         </form>
-
-        <h2>Login</h2>
-        <form onSubmit={handleLogin}>
-          <input
-            type="text"
-            placeholder="Benutzername"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Passwort"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button type="submit">Login</button>
-        </form>
+        <button onClick={() => setMode(mode === "login" ? "register" : "login")}>
+          {mode === "login" ? "Noch kein Konto? Registrieren" : "Schon registriert? Login"}
+        </button>
       </div>
     );
   }
 
-  // Wenn eingeloggt: Nachrichten-Übersicht + Logout
+  // Eingabeformular für Name, Alter, Größe
   return (
     <div style={{ padding: "2rem" }}>
-      <h1>Nachrichten</h1>
+      <h1>Willkommen! Du bist eingeloggt.</h1>
       <button onClick={handleLogout}>Logout</button>
+
+      <h2>Nachricht erstellen</h2>
       <form onSubmit={handleSubmitNachricht}>
         <input
           type="text"
           placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          required
         />
+        <br />
         <input
           type="number"
           placeholder="Alter"
           value={alter}
           onChange={(e) => setAlter(e.target.value)}
-          required
         />
+        <br />
         <input
           type="number"
           step="0.01"
-          placeholder="Größe (z.B. 1.75)"
+          placeholder="Größe"
           value={groesse}
           onChange={(e) => setGroesse(e.target.value)}
-          required
         />
+        <br />
         <button type="submit">Absenden</button>
       </form>
 
       <hr />
+
       <ul>
         {nachrichten.map((n) => (
           <li key={n.id}>
             <strong>{new Date(n.erstellt_am).toLocaleString()}</strong>
             <br />
-            Name: {n.name} <br />
-            Alter: {n.alter} <br />
-            Größe: {n.groesse}
+            {n.name} | {n.alter} | {n.groesse}
           </li>
         ))}
       </ul>
