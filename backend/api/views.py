@@ -6,6 +6,12 @@ from .serializers import NachrichtSerializer
 from .models import Nachricht
 from rest_framework import viewsets, permissions
 
+from .models import Nachricht, Sparziel
+from .serializers import NachrichtSerializer, SparzielSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
 class RegisterSerializer(ModelSerializer):
     class Meta:
         model = User
@@ -29,3 +35,19 @@ class NachrichtViewSet(viewsets.ModelViewSet):
     queryset = Nachricht.objects.all().order_by('-erstellt_am')
     serializer_class = NachrichtSerializer
     permission_classes = [permissions.IsAuthenticated]  # nur eingeloggte User
+
+class SparzielView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        sparziel, created = Sparziel.objects.get_or_create(user=request.user)
+        serializer = SparzielSerializer(sparziel)
+        return Response(serializer.data)
+
+    def post(self, request):
+        sparziel, created = Sparziel.objects.get_or_create(user=request.user)
+        serializer = SparzielSerializer(sparziel, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
