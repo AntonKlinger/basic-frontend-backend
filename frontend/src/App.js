@@ -52,6 +52,17 @@ function App() {
       .catch(() => alert("Fehler beim Löschen der Position"));
   };
 
+  const datenDiagrammMitSumme = datenDiagramm.map((item) => {
+    // Summe aller Positionen in diesem Jahr
+    const summePositionen = positionen.reduce((acc, pos) => {
+      const key = pos.name;             // genau der dataKey wie im Chart
+      const wert = item[key] || 0;      // Wert aus datenDiagramm für dieses Jahr
+      return acc + wert;
+    }, 0);
+
+  return { ...item, summePositionen };
+});
+
 
   // -------------------- Effects --------------------
   useEffect(() => {
@@ -249,7 +260,7 @@ function App() {
       {/* Diagramm */}
       <div style={{ marginTop: "30px" }}>
         <h2 style={styles.subtitle}>Nachrichten pro Monat</h2>
-          <LineChart width={600} height={300} data={datenDiagramm}>
+          <LineChart width={600} height={300} data={datenDiagrammMitSumme}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="jahr" />
             <YAxis domain={[0, sparziel]} />
@@ -265,10 +276,18 @@ function App() {
                 key={p.id}
                 type="monotone"
                 dataKey={p.name}   // <-- wichtig: genau der gleiche Key wie in datenDiagramm
-                stroke="#0000ff"
+                stroke="#cc00ffff"
                 dot={false}
               />
             ))}
+
+            {/* Linie für Summe aller Positionen */}
+            <Line
+              type="monotone"
+              dataKey="summePositionen"
+              stroke="#00ff11ff"
+              dot={false}
+            />
           </LineChart>
       </div>
 
