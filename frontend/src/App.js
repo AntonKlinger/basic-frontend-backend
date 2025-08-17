@@ -4,12 +4,12 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Referenc
 
 
 // Beispiel-Daten fürs Diagramm
-const daten = [
-  { name: "Jan", nachrichten: 5 },
-  { name: "Feb", nachrichten: 8 },
-  { name: "Mär", nachrichten: 2 },
-  { name: "Apr", nachrichten: 6 },
-];
+const daten = Array.from({ length: 10 }, (_, i) => ({
+  jahr: 2025 + i,
+  nachrichten: Math.floor(Math.random() * 10), // Beispielwerte
+}));
+
+
 
 function App() {
   const [mode, setMode] = useState("login");                 // "login" | "register"
@@ -226,21 +226,29 @@ function App() {
       {/* Diagramm */}
       <div style={{ marginTop: "30px" }}>
         <h2 style={styles.subtitle}>Nachrichten pro Monat</h2>
-        <LineChart width={500} height={300} data={daten}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" stroke="#fff" />
-          <YAxis stroke="#fff" domain={[0, sparziel + 100 || 'auto']} />
-          <Tooltip />
-          <Legend />
-          
-          {/* Deine normale Datenlinie */}
-          <Line type="monotone" dataKey="nachrichten" stroke="green" strokeWidth={3} />
-          
-          {/* Hier fügst du die Sparziel-Linie ein */}
-          {sparziel && (
+          <LineChart width={600} height={300} data={daten}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="jahr" />
+            <YAxis domain={[0, sparziel]} />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="nachrichten" stroke="#00ff00" />
+
+            {/* Sparziel-Linie */}
             <ReferenceLine y={sparziel} stroke="red" strokeDasharray="3 3" label="Sparziel" />
-          )}
-        </LineChart>
+
+            {/* Linien für Positionen */}
+            {positionen.map((p) => (
+              <ReferenceLine
+                key={p.id}
+                y={p.wert}
+                stroke="#0000ff"
+                strokeDasharray="4 4"
+                label={p.name}
+              />
+            ))}
+          </LineChart>
+
       </div>
 
       {/* Positionen – unter dem Diagramm */}
