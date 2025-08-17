@@ -43,6 +43,15 @@ function App() {
     return punkt;
   });
 
+  const handleDeletePosition = (id) => {
+    axios
+      .delete(`http://127.0.0.1:8000/api/positionen/${id}/`, { headers: authHeader() })
+      .then(() => {
+        setPositionen(positionen.filter((p) => p.id !== id));
+      })
+      .catch(() => alert("Fehler beim Löschen der Position"));
+  };
+
 
   // -------------------- Effects --------------------
   useEffect(() => {
@@ -247,9 +256,6 @@ function App() {
             <Tooltip />
             <Legend />
 
-            {/* Hauptlinie */}
-            <Line type="monotone" dataKey="nachrichten" stroke="#00ff00" />
-
             {/* Sparziel-Linie */}
             <ReferenceLine y={sparziel} stroke="red" strokeDasharray="3 3" label="Sparziel" />
 
@@ -293,6 +299,12 @@ function App() {
           {positionen.map((p) => (
             <li key={p.id}>
               {p.name} — {p.wert}
+              <button
+                style={{ marginLeft: "10px", background: "red", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
+                onClick={() => handleDeletePosition(p.id)}
+              >
+                löschen
+              </button>
             </li>
           ))}
         </ul>
