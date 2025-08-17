@@ -2,10 +2,11 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Nachricht(models.Model):
-    name = models.CharField(max_length=100)
-    alter = models.IntegerField(null=True, blank=True)
-    groesse = models.FloatField(null=True, blank=True)  # z.B. Größe in cm oder m
+    text = models.TextField()
     erstellt_am = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.text[:50]  # Zeigt die ersten 50 Zeichen in der Admin-Liste
 
 class Sparziel(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

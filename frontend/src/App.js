@@ -16,9 +16,7 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
 
   const [nachrichten, setNachrichten] = useState([]);
-  const [name, setName] = useState("");
-  const [alter, setAlter] = useState("");
-  const [groesse, setGroesse] = useState("");
+  const [nachrichtText, setNachrichtText] = useState(""); // nur noch ein Feld
 
   // Sparziel (Zahl) – wird pro User gespeichert
   const [sparziel, setSparziel] = useState("");
@@ -139,26 +137,32 @@ function App() {
   };
 
   // -------------------- Create/Update --------------------
-  const handleSubmitNachricht = (e) => {
+
+  const handleAddNachricht = async (e) => {
     e.preventDefault();
-    axios
-      .post(
-        "http://127.0.0.1:8000/api/nachrichten/",
-        {
-          name,
-          alter: alter ? parseInt(alter, 10) : null,
-          groesse: groesse ? parseFloat(groesse) : null,
+    if (!nachrichtText) return;
+
+    const jetzt = new Date().toISOString(); // aktueller Zeitstempel
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/nachrichten/", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
-        { headers: authHeader() }
-      )
-      .then((res) => {
-        setNachrichten([res.data, ...nachrichten]);
-        setName("");
-        setAlter("");
-        setGroesse("");
-      })
-      .catch(() => alert("Fehler beim Senden der Nachricht"));
+        body: JSON.stringify({ text: nachrichtText }),
+      });
+      const data = await response.json();
+      // Timestamp ergänzen, falls nicht vom Backend geliefert
+      setNachrichten([...nachrichten, { ...data, erstellt_am: data.erstellt_am ?? jetzt }]);
+      setNachrichtText("");
+    } catch (error) {
+      console.error(error);
+    }
   };
+
+
 
   const handleSubmitSparziel = (e) => {
     e.preventDefault();
@@ -331,34 +335,16 @@ function App() {
 
       {/* Nachricht erstellen */}
       <h2>Nachricht erstellen</h2>
-      <form onSubmit={handleSubmitNachricht}>
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={styles.input}
-        />
-        <br />
-        <input
-          type="number"
-          placeholder="Alter"
-          value={alter}
-          onChange={(e) => setAlter(e.target.value)}
-          style={styles.input}
-        />
-        <br />
-        <input
-          type="number"
-          step="0.01"
-          placeholder="Größe"
-          value={groesse}
-          onChange={(e) => setGroesse(e.target.value)}
-          style={styles.input}
-        />
-        <br />
-        <button type="submit" style={styles.button}>Absenden</button>
-      </form>
+        <form onSubmit={handleAddNachricht}>
+          <input
+            type="text"
+            placeholder="Nachricht eingeben"
+            value={nachrichtText}
+            onChange={(e) => setNachrichtText(e.target.value)}
+            style={styles.input}
+          />
+          <button style={styles.button} type="submit">Senden</button>
+        </form>
 
       <hr />
 
@@ -367,7 +353,7 @@ function App() {
           <li key={n.id}>
             <strong>{new Date(n.erstellt_am).toLocaleString()}</strong>
             <br />
-            {n.name} | {n.alter} | {n.groesse}
+            {n.text} {/* hier statt n.name | n.alter | n.groesse */}
           </li>
         ))}
       </ul>
