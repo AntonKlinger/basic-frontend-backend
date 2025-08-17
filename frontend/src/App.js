@@ -9,8 +9,6 @@ const daten = Array.from({ length: 10 }, (_, i) => ({
   nachrichten: Math.floor(Math.random() * 10), // Beispielwerte
 }));
 
-
-
 function App() {
   const [mode, setMode] = useState("login");                 // "login" | "register"
   const [username, setUsername] = useState("");
@@ -29,6 +27,22 @@ function App() {
   const [positionen, setPositionen] = useState([]);
   const [posName, setPosName] = useState("");
   const [posWert, setPosWert] = useState("");
+
+  // Transformierte Daten für das Diagramm
+  const datenDiagramm = Array.from({ length: 10 }, (_, i) => {
+    const jahrIndex = i + 1; // 1 bis 10
+    const jahr = 2025 + i;
+
+    const punkt = { jahr, nachrichten: daten[i]?.nachrichten ?? 0 };
+
+    // Positionen mit Wachstumsfaktor 1,01^jahrIndex berechnen
+    positionen.forEach((p) => {
+      punkt[p.name] = p.wert * Math.pow(1.1, jahrIndex);
+    });
+
+    return punkt;
+  });
+
 
   // -------------------- Effects --------------------
   useEffect(() => {
@@ -226,29 +240,30 @@ function App() {
       {/* Diagramm */}
       <div style={{ marginTop: "30px" }}>
         <h2 style={styles.subtitle}>Nachrichten pro Monat</h2>
-          <LineChart width={600} height={300} data={daten}>
+          <LineChart width={600} height={300} data={datenDiagramm}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="jahr" />
             <YAxis domain={[0, sparziel]} />
             <Tooltip />
             <Legend />
+
+            {/* Hauptlinie */}
             <Line type="monotone" dataKey="nachrichten" stroke="#00ff00" />
 
             {/* Sparziel-Linie */}
             <ReferenceLine y={sparziel} stroke="red" strokeDasharray="3 3" label="Sparziel" />
 
-            {/* Linien für Positionen */}
+            {/* Dynamische Linien für Positionen */}
             {positionen.map((p) => (
-              <ReferenceLine
+              <Line
                 key={p.id}
-                y={p.wert}
+                type="monotone"
+                dataKey={p.name}   // <-- wichtig: genau der gleiche Key wie in datenDiagramm
                 stroke="#0000ff"
-                strokeDasharray="4 4"
-                label={p.name}
+                dot={false}
               />
             ))}
           </LineChart>
-
       </div>
 
       {/* Positionen – unter dem Diagramm */}
