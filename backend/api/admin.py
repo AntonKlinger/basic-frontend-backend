@@ -4,8 +4,8 @@ from .models import Nachricht
 
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'name', 'wert')  # Spalten in der Übersicht
-    list_filter = ('user',)
+    list_display = ('id', 'user', 'name', 'wert', 'anfangsdatum', 'enddatum')  # Spalten in der Übersicht
+    list_filter = ('user', 'anfangsdatum', 'enddatum')
     search_fields = ('name',)
 
 @admin.register(Nachricht)

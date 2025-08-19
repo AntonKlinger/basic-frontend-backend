@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Nachricht(models.Model):
     text = models.TextField()
@@ -20,6 +21,18 @@ class Position(models.Model):
     name = models.CharField(max_length=100)
     wert = models.FloatField()
     erstellt_am = models.DateTimeField(auto_now_add=True)
+
+    anfangsdatum = models.DateField(
+        null=True,
+        blank=True,
+        default=timezone.now   # Falls leer: aktuelles Datum
+    )
+    enddatum = models.DateField(
+        null=True,
+        blank=True,
+        default=None           # Falls leer: NULL
+    )
+
 
     def __str__(self):
         return f"{self.name} - {self.wert}"

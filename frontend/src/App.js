@@ -25,6 +25,8 @@ function App() {
   const [positionen, setPositionen] = useState([]);
   const [posName, setPosName] = useState("");
   const [posWert, setPosWert] = useState("");
+  const [posAnfang, setPosAnfang] = useState("");
+  const [posEnde, setPosEnde] = useState("");
 
   // Transformierte Daten für das Diagramm
   const datenDiagramm = Array.from({ length: 10 }, (_, i) => {
@@ -184,20 +186,29 @@ function App() {
   const handleAddPosition = (e) => {
     e.preventDefault();
     const wert = posWert === "" ? null : parseFloat(posWert);
+
     if (!posName.trim() || wert === null || Number.isNaN(wert)) {
       alert("Bitte Name und eine gültige Zahl für den Wert eingeben.");
       return;
     }
+
     axios
       .post(
         "http://127.0.0.1:8000/api/positionen/",
-        { name: posName.trim(), wert },
+        {
+          name: posName.trim(),
+          wert,
+          anfangsdatum: posAnfang || null, // leer → Backend setzt default
+          enddatum: posEnde || null,       // leer → null
+        },
         { headers: authHeader() }
       )
       .then((res) => {
         setPositionen([res.data, ...positionen]);
         setPosName("");
         setPosWert("");
+        setPosAnfang("");
+        setPosEnde("");
       })
       .catch(() => alert("Fehler beim Hinzufügen der Position"));
   };
@@ -315,15 +326,42 @@ function App() {
             onChange={(e) => setPosWert(e.target.value)}
             style={styles.input}
           />
-        <br />
+          <br />
+          <input
+            type="date"
+            placeholder="Anfangsdatum"
+            value={posAnfang}
+            onChange={(e) => setPosAnfang(e.target.value)}
+            style={styles.input}
+          />
+          <br />
+          <input
+            type="date"
+            placeholder="Enddatum"
+            value={posEnde}
+            onChange={(e) => setPosEnde(e.target.value)}
+            style={styles.input}
+          />
+          <br />
           <button style={styles.button} type="submit">Hinzufügen</button>
         </form>
+
         <ul>
           {positionen.map((p) => (
             <li key={p.id}>
-              {p.name} — {p.wert}
+              {p.name} — {p.wert}  
+              {p.anfangsdatum && ` | Anfang: ${p.anfangsdatum}`}  
+              {p.enddatum ? ` | Ende: ${p.enddatum}` : " | Ende: offen"}
               <button
-                style={{ marginLeft: "10px", background: "red", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
+                style={{
+                  marginLeft: "10px",
+                  background: "red",
+                  color: "white",
+                  border: "none",
+                  padding: "5px 10px",
+                  borderRadius: "4px",
+                  cursor: "pointer"
+                }}
                 onClick={() => handleDeletePosition(p.id)}
               >
                 löschen
@@ -332,6 +370,7 @@ function App() {
           ))}
         </ul>
       </div>
+
 
       {/* Nachricht erstellen */}
       <h2>Nachricht erstellen</h2>
