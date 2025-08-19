@@ -35,3 +35,23 @@ class Position(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.wert}"
+    
+# models.py
+class Sparrate(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    betrag = models.FloatField()
+    erstellt_am = models.DateTimeField(auto_now_add=True)
+
+    anfangsdatum = models.DateField(
+        null=True,
+        blank=True,
+        default=timezone.now
+    )
+    enddatum = models.DateField(
+        null=True,
+        blank=True,
+    )
+
+    def __str__(self):
+        return f"{self.name} - {self.betrag}"

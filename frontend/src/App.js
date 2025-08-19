@@ -28,6 +28,13 @@ function App() {
   const [posAnfang, setPosAnfang] = useState("");
   const [posEnde, setPosEnde] = useState("");
 
+  // Neue States für Sparraten
+  const [sparraten, setSparraten] = useState([]);
+  const [srName, setSrName] = useState("");
+  const [srBetrag, setSrBetrag] = useState("");
+  const [srAnfang, setSrAnfang] = useState("");
+  const [srEnde, setSrEnde] = useState("");
+
   // Transformierte Daten für das Diagramm
   const datenDiagramm = Array.from({ length: 10 }, (_, i) => {
     const jahrIndex = i + 1; // 1 bis 10
@@ -227,6 +234,38 @@ function App() {
       .catch(() => alert("Fehler beim Hinzufügen der Position"));
   };
 
+
+  // Sparraten laden
+  useEffect(() => {
+    axios.get("http://127.0.0.1:8000/api/sparraten/", { headers: authHeader() })
+      .then(res => setSparraten(res.data))
+      .catch(err => console.error(err));
+  }, []);
+
+  // Sparrate hinzufügen
+  const handleAddSparrate = (e) => {
+    e.preventDefault();
+    axios.post("http://127.0.0.1:8000/api/sparraten/", {
+      name: srName,
+      betrag: parseFloat(srBetrag),
+      anfangsdatum: srAnfang || null,
+      enddatum: srEnde || null
+    }, { headers: authHeader() })
+      .then(res => {
+        setSparraten([res.data, ...sparraten]);
+        setSrName("");
+        setSrBetrag("");
+        setSrAnfang("");
+        setSrEnde("");
+      });
+  };
+
+  // Sparrate löschen
+  const handleDeleteSparrate = (id) => {
+    axios.delete(`http://127.0.0.1:8000/api/sparraten/${id}/`, { headers: authHeader() })
+      .then(() => setSparraten(sparraten.filter(sr => sr.id !== id)));
+  };
+
   // -------------------- UI --------------------
   if (!token) {
     return (
@@ -384,6 +423,56 @@ function App() {
           ))}
         </ul>
       </div>
+
+      {/* Sparraten – unter den Positionen */}
+      <div style={{ marginTop: "2rem" }}>
+        <h2>Sparraten</h2>
+        <form onSubmit={handleAddSparrate}>
+          <input
+            type="text"
+            placeholder="Sparrate-Name"
+            value={srName}
+            onChange={(e) => setSrName(e.target.value)}
+            style={styles.input}
+          /><br />
+          <input
+            type="number"
+            step="0.01"
+            placeholder="Betrag"
+            value={srBetrag}
+            onChange={(e) => setSrBetrag(e.target.value)}
+            style={styles.input}
+          /><br />
+          <input
+            type="date"
+            value={srAnfang}
+            onChange={(e) => setSrAnfang(e.target.value)}
+            style={styles.input}
+          /><br />
+          <input
+            type="date"
+            value={srEnde}
+            onChange={(e) => setSrEnde(e.target.value)}
+            style={styles.input}
+          /><br />
+          <button style={styles.button} type="submit">Hinzufügen</button>
+        </form>
+
+        <ul>
+          {sparraten.map((sr) => (
+            <li key={sr.id}>
+              {sr.name} — {sr.betrag} € ({sr.anfangsdatum || "ab sofort"} bis {sr.enddatum || "unbegrenzt"})
+              <button
+                style={{ marginLeft: "10px", background: "red", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
+                onClick={() => handleDeleteSparrate(sr.id)}
+              >
+                löschen
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
 
 
       {/* Nachricht erstellen */}

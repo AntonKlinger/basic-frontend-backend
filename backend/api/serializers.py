@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Nachricht
 from .models import Nachricht, Sparziel
 from .models import Position
+from .models  import Sparrate
 
 class NachrichtSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,3 +21,10 @@ class PositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Position
         fields = ['id', 'name', 'wert', 'erstellt_am', 'anfangsdatum', 'enddatum']
+
+class SparrateSerializer(serializers.ModelSerializer):
+    anfangsdatum = serializers.DateField(required=False, allow_null=True)
+    enddatum = serializers.DateField(required=False, allow_null=True)
+    class Meta:
+        model = Sparrate
+        fields = ['id', 'name', 'betrag', 'anfangsdatum', 'enddatum', 'erstellt_am']

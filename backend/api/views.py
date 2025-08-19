@@ -15,6 +15,9 @@ from rest_framework.response import Response
 from .models import Position
 from .serializers import PositionSerializer
 
+from .models import Sparrate
+from .serializers import SparrateSerializer
+
 class RegisterSerializer(ModelSerializer):
     class Meta:
         model = User
@@ -65,4 +68,15 @@ class PositionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         # Beim Erstellen automatisch den aktuellen User zuordnen
+        serializer.save(user=self.request.user)
+
+# views.py
+class SparrateViewSet(viewsets.ModelViewSet):
+    serializer_class = SparrateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Sparrate.objects.filter(user=self.request.user).order_by('-erstellt_am')
+
+    def perform_create(self, serializer):
         serializer.save(user=self.request.user)
