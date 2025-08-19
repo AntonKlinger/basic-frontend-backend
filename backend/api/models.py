@@ -29,8 +29,7 @@ class Position(models.Model):
     )
     enddatum = models.DateField(
         null=True,
-        blank=True,
-        default=None           # Falls leer: NULL
+        blank=True             # Falls leer → bleibt NULL
     )
 
 

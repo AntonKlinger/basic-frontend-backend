@@ -14,6 +14,9 @@ class SparzielSerializer(serializers.ModelSerializer):
         fields = ['betrag']
 
 class PositionSerializer(serializers.ModelSerializer):
+    anfangsdatum = serializers.DateField(required=False, allow_null=True)
+    enddatum = serializers.DateField(required=False, allow_null=True)
+
     class Meta:
         model = Position
-        fields = ['id', 'name', 'wert', 'erstellt_am']
+        fields = ['id', 'name', 'wert', 'erstellt_am', 'anfangsdatum', 'enddatum']
