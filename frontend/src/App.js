@@ -33,11 +33,25 @@ function App() {
     const jahrIndex = i + 1; // 1 bis 10
     const jahr = 2025 + i;
 
+    // Stichtags-Datum: 1. Januar des Jahres
+    const stichtag = new Date(`${jahr}-01-01`);
+
     const punkt = { jahr, nachrichten: daten[i]?.nachrichten ?? 0 };
 
-    // Positionen mit Wachstumsfaktor 1,01^jahrIndex berechnen
     positionen.forEach((p) => {
-      punkt[p.name] = p.wert * Math.pow(1.1, jahrIndex);
+      const anfang = p.anfangsdatum ? new Date(p.anfangsdatum) : null;
+      const ende = p.enddatum ? new Date(p.enddatum) : null;
+
+      // prüfen, ob Position aktiv ist
+      const aktiv =
+        (!anfang || stichtag >= anfang) &&
+        (!ende || stichtag <= ende);
+
+      if (aktiv) {
+        punkt[p.name] = p.wert * Math.pow(1.1, jahrIndex); // nur wenn aktiv
+      } else {
+        punkt[p.name] = 0; // oder gar nicht setzen → dann erscheint keine Linie
+      }
     });
 
     return punkt;
