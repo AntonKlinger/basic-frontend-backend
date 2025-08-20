@@ -37,29 +37,44 @@ function App() {
 
   // Transformierte Daten für das Diagramm
   const datenDiagramm = Array.from({ length: 10 }, (_, i) => {
-    const jahrIndex = i + 1; // 1 bis 10
+    const jahrIndex = i + 1;
     const jahr = 2025 + i;
 
-    // Stichtags-Datum: 1. Januar des Jahres
     const stichtag = new Date(`${jahr}-01-01`);
 
     const punkt = { jahr, nachrichten: daten[i]?.nachrichten ?? 0 };
 
+    // Positionen verarbeiten
     positionen.forEach((p) => {
       const anfang = p.anfangsdatum ? new Date(p.anfangsdatum) : null;
       const ende = p.enddatum ? new Date(p.enddatum) : null;
 
-      // prüfen, ob Position aktiv ist
       const aktiv =
         (!anfang || stichtag >= anfang) &&
         (!ende || stichtag <= ende);
 
       if (aktiv) {
-        punkt[p.name] = p.wert * Math.pow(1.1, jahrIndex); // nur wenn aktiv
+        punkt[p.name] = p.wert * Math.pow(1.1, jahrIndex);
       } else {
-        punkt[p.name] = 0; // oder gar nicht setzen → dann erscheint keine Linie
+        punkt[p.name] = 0;
       }
     });
+
+    // HIER kommt dein Sparraten-Code rein 👇
+    let summeSparraten = 0;
+    sparraten.forEach((s) => {
+      const anfang = s.anfangsdatum ? new Date(s.anfangsdatum) : null;
+      const ende = s.enddatum ? new Date(s.enddatum) : null;
+
+      const aktiv =
+        (!anfang || stichtag >= anfang) &&
+        (!ende || stichtag <= ende);
+
+      if (aktiv) {
+        summeSparraten += s.betrag;
+      }
+    });
+    punkt.summeSparraten = summeSparraten;
 
     return punkt;
   });
@@ -355,6 +370,13 @@ function App() {
               dataKey="summePositionen"
               stroke="#00ff11ff"
               dot={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="summeSparraten"
+              stroke="#0099ff"
+              dot={false}
+              strokeDasharray="4 4"
             />
           </LineChart>
       </div>
