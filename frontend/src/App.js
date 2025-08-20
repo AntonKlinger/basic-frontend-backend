@@ -36,13 +36,18 @@ function App() {
   const [srEnde, setSrEnde] = useState("");
 
   // Transformierte Daten für das Diagramm
-  const datenDiagramm = Array.from({ length: 10 }, (_, i) => {
-    const jahrIndex = i + 1;
-    const jahr = 2025 + i;
+  // Transformierte Daten für das Diagramm (Monat für Monat)
+  const datenDiagramm = Array.from({ length: 10 * 12 }, (_, i) => {
+    const jahr = 2025 + Math.floor(i / 12);     // Jahr: alle 12 Schritte +1
+    const monat = (i % 12) + 1;                 // Monat 1–12
+    const stichtag = new Date(jahr, monat - 1, 1); // 1. Tag des Monats
 
-    const stichtag = new Date(`${jahr}-01-01`);
-
-    const punkt = { jahr, nachrichten: daten[i]?.nachrichten ?? 0 };
+    const punkt = {
+      jahr,
+      monat,
+      label: `${monat.toString().padStart(2, "0")}.${jahr}`, // z.B. "01.2025"
+      nachrichten: daten[i]?.nachrichten ?? 0
+    };
 
     // Positionen verarbeiten
     positionen.forEach((p) => {
@@ -54,13 +59,15 @@ function App() {
         (!ende || stichtag <= ende);
 
       if (aktiv) {
-        punkt[p.name] = p.wert * Math.pow(1.1, jahrIndex);
+        // z. B. Wachstumsfaktor auf Monatsbasis (statt jahresweise)
+        const monateSeitStart = (jahr - 2025) * 12 + (monat - 1);
+        punkt[p.name] = p.wert * Math.pow(1.01, monateSeitStart); 
       } else {
         punkt[p.name] = 0;
       }
     });
 
-    // HIER kommt dein Sparraten-Code rein 👇
+    // Sparraten verarbeiten
     let summeSparraten = 0;
     sparraten.forEach((s) => {
       const anfang = s.anfangsdatum ? new Date(s.anfangsdatum) : null;
@@ -71,13 +78,14 @@ function App() {
         (!ende || stichtag <= ende);
 
       if (aktiv) {
-        summeSparraten += s.betrag;
+        summeSparraten += s.betrag; // hier: pro Monat
       }
     });
     punkt.summeSparraten = summeSparraten;
 
     return punkt;
   });
+
 
   const handleDeletePosition = (id) => {
     axios
