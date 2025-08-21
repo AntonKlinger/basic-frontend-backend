@@ -36,20 +36,22 @@ function App() {
   const [srEnde, setSrEnde] = useState("");
 
   // Transformierte Daten für das Diagramm
-  // Transformierte Daten für das Diagramm (Monat für Monat)
+  let kumulierteSparraten = 0;
+
   const datenDiagramm = Array.from({ length: 10 * 12 }, (_, i) => {
-    const jahr = 2025 + Math.floor(i / 12);     // Jahr: alle 12 Schritte +1
-    const monat = (i % 12) + 1;                 // Monat 1–12
-    const stichtag = new Date(jahr, monat - 1, 1); // 1. Tag des Monats
+    const jahr = 2025 + Math.floor(i / 12);
+    const monat = (i % 12) + 1;
+    const stichtag = new Date(jahr, monat - 1, 1);
 
     const punkt = {
       jahr,
       monat,
-      label: `${monat.toString().padStart(2, "0")}.${jahr}`, // z.B. "01.2025"
+      label: `${monat.toString().padStart(2, "0")}.${jahr}`,
       nachrichten: daten[i]?.nachrichten ?? 0
     };
 
     // Positionen verarbeiten
+    let summePositionen = 0;
     positionen.forEach((p) => {
       const anfang = p.anfangsdatum ? new Date(p.anfangsdatum) : null;
       const ende = p.enddatum ? new Date(p.enddatum) : null;
@@ -59,9 +61,10 @@ function App() {
         (!ende || stichtag <= ende);
 
       if (aktiv) {
-        // z. B. Wachstumsfaktor auf Monatsbasis (statt jahresweise)
         const monateSeitStart = (jahr - 2025) * 12 + (monat - 1);
-        punkt[p.name] = p.wert * Math.pow(1.01, monateSeitStart); 
+        const wert = p.wert * Math.pow(1.01, monateSeitStart);
+        punkt[p.name] = wert;
+        summePositionen += wert;
       } else {
         punkt[p.name] = 0;
       }
@@ -78,13 +81,24 @@ function App() {
         (!ende || stichtag <= ende);
 
       if (aktiv) {
-        summeSparraten += s.betrag; // hier: pro Monat
+        summeSparraten += s.betrag; // pro Monat
       }
     });
+
     punkt.summeSparraten = summeSparraten;
+
+    // Sparraten kumulativ aufaddieren (Akkumulation über die Monate)
+    kumulierteSparraten += summeSparraten;
+
+    // Summe Positionen (ohne Sparraten)
+    punkt.summePositionen = summePositionen;
+
+    // Vermögen = Positionen + alle Sparraten bis hierhin
+    punkt.vermögen = summePositionen + kumulierteSparraten;
 
     return punkt;
   });
+
 
 
   const handleDeletePosition = (id) => {
@@ -386,7 +400,14 @@ function App() {
               dot={false}
               strokeDasharray="4 4"
             />
+          <Line
+            type="monotone"
+            dataKey="vermögen"
+            stroke="#ff9900"
+            dot={false}
+          />
           </LineChart>
+
       </div>
 
       {/* Positionen – unter dem Diagramm */}
