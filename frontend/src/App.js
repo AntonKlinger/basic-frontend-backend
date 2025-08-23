@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from 'recharts';
 
+import wb from './assets/Wallstreetbets.png';
+import styles from './style.js'
+
 
 // Beispiel-Daten fürs Diagramm
 const daten = Array.from({ length: 10 }, (_, i) => ({
@@ -340,12 +343,13 @@ function App() {
 
   return (
     <div style={styles.container}>
-      <h1>Willkommen! Du bist eingeloggt.</h1>
-      <button onClick={handleLogout} style={styles.button}>Logout</button>
+    <div style={styles.header}>
+      <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
+    </div>
 
       {/* Sparziel – direkt unter dem Logout-Button */}
       <div style={{ marginTop: "1.5rem" }}>
-        <h2>Sparziel</h2>
+        <img src={wb} alt="Logo" style={styles.wb}/>
         <form onSubmit={handleSubmitSparziel}>
           <input
             type="number"
@@ -355,6 +359,7 @@ function App() {
             onChange={(e) => setSparziel(e.target.value)}
             style={styles.input}
           />
+          <br />
           <button type="submit" style={styles.button}>
             Speichern
           </button>
@@ -554,23 +559,6 @@ function App() {
   );
 }
 
-const styles = {
-  container: {
-    backgroundColor: "#222831",
-    color: "#fff",
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "2rem",
-  },
-  title: { fontSize: "2rem", marginBottom: "1rem" },
-  subtitle: { fontSize: "1.5rem", marginBottom: "1rem" },
-  form: { display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" },
-  input: { padding: "10px", borderRadius: "5px", border: "1px solid #ccc", width: "250px" },
-  button: { padding: "10px 20px", border: "none", borderRadius: "5px", background: "#1e90ff", color: "#fff", cursor: "pointer" },
-  linkButton: { marginTop: "10px", background: "none", border: "none", color: "#1e90ff", cursor: "pointer" },
-  listItem: { padding: "5px 0", borderBottom: "1px solid #333" },
-};
+
 
 export default App;
