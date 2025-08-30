@@ -5,6 +5,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Referenc
 import wb from './assets/Wallstreetbets.png';
 import styles from './style.js'
 
+import API_BASE_URL from "./api";
+
 
 // Beispiel-Daten fürs Diagramm
 const daten = Array.from({ length: 10 }, (_, i) => ({
@@ -106,7 +108,7 @@ function App() {
 
   const handleDeletePosition = (id) => {
     axios
-      .delete(`http://127.0.0.1:8000/api/positionen/${id}/`, { headers: authHeader() })
+      .delete(`${API_BASE_URL}/api/positionen/${id}/`, { headers: authHeader() })
       .then(() => {
         setPositionen(positionen.filter((p) => p.id !== id));
       })
@@ -148,21 +150,21 @@ function App() {
   // -------------------- Loaders --------------------
   const fetchNachrichten = () => {
     axios
-      .get("http://127.0.0.1:8000/api/nachrichten/", { headers: authHeader() })
+      .get(`${API_BASE_URL}/api/nachrichten/`, { headers: authHeader() })
       .then((res) => setNachrichten(res.data))
       .catch(handleApiError);
   };
 
   const fetchSparziel = () => {
     axios
-      .get("http://127.0.0.1:8000/api/sparziel/", { headers: authHeader() })
+      .get(`${API_BASE_URL}/api/sparziel/`, { headers: authHeader() })
       .then((res) => setSparziel(res.data?.betrag ?? ""))
       .catch(handleApiError);
   };
 
   const fetchPositionen = () => {
     axios
-      .get("http://127.0.0.1:8000/api/positionen/", { headers: authHeader() })
+      .get(`${API_BASE_URL}/api/positionen/`, { headers: authHeader() })
       .then((res) => setPositionen(res.data))
       .catch(handleApiError);
   };
@@ -171,7 +173,7 @@ function App() {
   const handleRegister = (e) => {
     e.preventDefault();
     axios
-      .post("http://127.0.0.1:8000/api/register/", { username, password })
+      .post(`${API_BASE_URL}/api/register/`, { username, password })
       .then(() => {
         alert("Registrierung erfolgreich! Bitte einloggen.");
         setMode("login");
@@ -182,7 +184,7 @@ function App() {
   const handleLogin = (e) => {
     e.preventDefault();
     axios
-      .post(`http://127.0.0.1:8000/api/token/`, { username, password })
+      .post(`${API_BASE_URL}/api/token/`, { username, password })
       .then((res) => {
         const accessToken = res.data.access;
         localStorage.setItem("token", accessToken);
@@ -208,7 +210,7 @@ function App() {
     const jetzt = new Date().toISOString(); // aktueller Zeitstempel
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/nachrichten/", {
+      const response = await fetch(`${API_BASE_URL}/api/nachrichten/`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -236,7 +238,7 @@ function App() {
     }
     axios
       .post(
-        "http://127.0.0.1:8000/api/sparziel/",
+        `${API_BASE_URL}/api/sparziel/`,
         { betrag: wert },
         { headers: authHeader() }
       )
@@ -255,7 +257,7 @@ function App() {
 
     axios
       .post(
-        "http://127.0.0.1:8000/api/positionen/",
+        `${API_BASE_URL}/api/positionen/`,
         {
           name: posName.trim(),
           wert,
@@ -277,7 +279,7 @@ function App() {
 
   // Sparraten laden
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/sparraten/", { headers: authHeader() })
+    axios.get(`${API_BASE_URL}/api/sparraten/`, { headers: authHeader() })
       .then(res => setSparraten(res.data))
       .catch(err => console.error(err));
   }, []);
@@ -285,7 +287,7 @@ function App() {
   // Sparrate hinzufügen
   const handleAddSparrate = (e) => {
     e.preventDefault();
-    axios.post("http://127.0.0.1:8000/api/sparraten/", {
+    axios.post(`${API_BASE_URL}/api/sparraten/`, {
       name: srName,
       betrag: parseFloat(srBetrag),
       anfangsdatum: srAnfang || null,
@@ -302,7 +304,7 @@ function App() {
 
   // Sparrate löschen
   const handleDeleteSparrate = (id) => {
-    axios.delete(`http://127.0.0.1:8000/api/sparraten/${id}/`, { headers: authHeader() })
+    axios.delete(`${API_BASE_URL}/api/sparraten/${id}/`, { headers: authHeader() })
       .then(() => setSparraten(sparraten.filter(sr => sr.id !== id)));
   };
 
