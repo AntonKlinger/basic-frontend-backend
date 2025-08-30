@@ -279,10 +279,12 @@ function App() {
 
   // Sparraten laden
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/api/sparraten/`, { headers: authHeader() })
+    if(token) {
+      axios.get(`${API_BASE_URL}/api/sparraten/`, { headers: authHeader() })
       .then(res => setSparraten(res.data))
       .catch(err => console.error(err));
-  }, []);
+    }
+  }, [token]);
 
   // Sparrate hinzufügen
   const handleAddSparrate = (e) => {
