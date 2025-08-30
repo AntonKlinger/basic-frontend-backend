@@ -334,11 +334,11 @@ function App() {
             {mode === "login" ? "Login" : "Registrieren"}
           </button>
         </form>
-        <button onClick={() => setMode(mode === "login" ? "register" : "login")} style={styles.button}>
+        {/*<button onClick={() => setMode(mode === "login" ? "register" : "login")} style={styles.button}>
           {mode === "login"
             ? "Noch kein Konto? Registrieren"
             : "Schon registriert? Login"}
-        </button>
+        </button>*/}
       </div>
     );
   }
