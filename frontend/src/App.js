@@ -182,7 +182,7 @@ function App() {
   const handleLogin = (e) => {
     e.preventDefault();
     axios
-      .post("http://127.0.0.1:8000/api/token/", { username, password })
+      .post(`http://127.0.0.1:8000/api/token/`, { username, password })
       .then((res) => {
         const accessToken = res.data.access;
         localStorage.setItem("token", accessToken);
