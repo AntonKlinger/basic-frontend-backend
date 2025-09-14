@@ -18,6 +18,8 @@ from .serializers import PositionSerializer
 from .models import Sparrate
 from .serializers import SparrateSerializer
 
+from.models import UserProfile
+
 class RegisterSerializer(ModelSerializer):
     class Meta:
         model = User
@@ -80,3 +82,14 @@ class SparrateViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        return Response({
+            "username": request.user.username,
+            "level": profile.level,
+        })

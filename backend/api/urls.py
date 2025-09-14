@@ -4,6 +4,8 @@ from .views import NachrichtViewSet, RegisterView
 from .views import SparzielView
 from .views import PositionViewSet
 from .views import SparrateViewSet
+from .views import UserProfileView
+
 
 router = DefaultRouter()
 router.register(r'nachrichten', NachrichtViewSet)
@@ -14,4 +16,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('register/', RegisterView.as_view(), name='register'),
     path('sparziel/', SparzielView.as_view(), name='sparziel'),
+    path("me/", UserProfileView.as_view(), name="user_profile"),
 ]
