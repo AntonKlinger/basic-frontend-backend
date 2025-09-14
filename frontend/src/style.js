@@ -42,6 +42,12 @@ const styles = {
   form: { display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" },
   button: { padding: "10px 20px", border: "none", borderRadius: "5px", background: "#1e90ff", color: "#fff", cursor: "pointer" },
   linkButton: { marginTop: "10px", background: "none", border: "none", color: "#1e90ff", cursor: "pointer" },
+
+
+  smallBox: { marginTop: "2rem", backgroundColor: "#222831", padding: "1rem", borderRadius: "8px", boxShadow: "0 4px 12px rgba(248, 243, 243, 0.15)", maxWidth: "100%"},
+  largeBox: { marginTop: "2rem", backgroundColor: "#222831", padding: "1rem", borderRadius: "8px", width: "600px", boxShadow: "0 4px 12px rgba(248, 243, 243, 0.15)", maxWidth: "100%" },
+
+
   logoutButton: {
     position: "absolute",
     top: "20px",
