@@ -7,6 +7,9 @@ import styles from './style.js'
 
 import API_BASE_URL from "./api";
 
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import NewPage from "./Newpage.js";
+
 
 // Beispiel-Daten fürs Diagramm
 const daten = Array.from({ length: 10 }, (_, i) => ({
@@ -346,220 +349,236 @@ function App() {
   }
 
   return (
-    <div style={styles.container}>
-    <div style={styles.header}>
-      <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
-    </div>
-
-      {/* Sparziel – direkt unter dem Logout-Button */}
-      <div style={{ marginTop: "1.5rem" }}>
-        <img src={wb} alt="Logo" style={styles.wb}/>
-        <form onSubmit={handleSubmitSparziel}>
-          <input
-            type="number"
-            step="0.01"
-            placeholder="Sparziel (Zahl)"
-            value={sparziel}
-            onChange={(e) => setSparziel(e.target.value)}
-            style={styles.input}
-          />
-          <br />
-          <button type="submit" style={styles.button}>
-            Speichern
-          </button>
-        </form>
-        {sparziel !== "" && <p>Aktuelles Sparziel: {sparziel}</p>}
-      </div>
-
-      {/* Diagramm */}
-      <div style={{ marginTop: "30px" }}>
-        <h2 style={styles.subtitle}>Nachrichten pro Monat</h2>
-          <LineChart width={600} height={300} data={datenDiagrammMitSumme}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="jahr" />
-            <YAxis domain={[0, sparziel]} />
-            <Tooltip />
-            <Legend />
-
-            {/* Sparziel-Linie */}
-            <ReferenceLine y={sparziel} stroke="red" strokeDasharray="3 3" label="Sparziel" />
-
-            {/* Dynamische Linien für Positionen */}
-            {positionen.map((p) => (
-              <Line
-                key={p.id}
-                type="monotone"
-                dataKey={p.name}   // <-- wichtig: genau der gleiche Key wie in datenDiagramm
-                stroke="#cc00ffff"
-                dot={false}
-              />
-            ))}
-
-            {/* Linie für Summe aller Positionen */}
-            <Line
-              type="monotone"
-              dataKey="summePositionen"
-              stroke="#00ff11ff"
-              dot={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="summeSparraten"
-              stroke="#0099ff"
-              dot={false}
-              strokeDasharray="4 4"
-            />
-          <Line
-            type="monotone"
-            dataKey="vermögen"
-            stroke="#ff9900"
-            dot={false}
-          />
-          </LineChart>
-
-      </div>
-
-      {/* Positionen – unter dem Diagramm */}
-      <div style={{ marginTop: "2rem" }}>
-        <h2>Positionen</h2>
-        <form onSubmit={handleAddPosition}>
-          <input
-            type="text"
-            placeholder="Positionsname"
-            value={posName}
-            onChange={(e) => setPosName(e.target.value)}
-            style={styles.input}
-          />
-          <br />
-          <input
-            type="number"
-            step="0.01"
-            placeholder="Wert"
-            value={posWert}
-            onChange={(e) => setPosWert(e.target.value)}
-            style={styles.input}
-          />
-          <br />
-          <input
-            type="date"
-            placeholder="Anfangsdatum"
-            value={posAnfang}
-            onChange={(e) => setPosAnfang(e.target.value)}
-            style={styles.input}
-          />
-          <br />
-          <input
-            type="date"
-            placeholder="Enddatum"
-            value={posEnde}
-            onChange={(e) => setPosEnde(e.target.value)}
-            style={styles.input}
-          />
-          <br />
-          <button style={styles.button} type="submit">Hinzufügen</button>
-        </form>
-
-        <ul>
-          {positionen.map((p) => (
-            <li key={p.id}>
-              {p.name} — {p.wert}  
-              {p.anfangsdatum && ` | Anfang: ${p.anfangsdatum}`}  
-              {p.enddatum ? ` | Ende: ${p.enddatum}` : " | Ende: offen"}
-              <button
-                style={{
-                  marginLeft: "10px",
-                  background: "red",
-                  color: "white",
-                  border: "none",
-                  padding: "5px 10px",
-                  borderRadius: "4px",
-                  cursor: "pointer"
-                }}
-                onClick={() => handleDeletePosition(p.id)}
-              >
-                löschen
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Sparraten – unter den Positionen */}
-      <div style={{ marginTop: "2rem" }}>
-        <h2>Sparraten</h2>
-        <form onSubmit={handleAddSparrate}>
-          <input
-            type="text"
-            placeholder="Sparrate-Name"
-            value={srName}
-            onChange={(e) => setSrName(e.target.value)}
-            style={styles.input}
-          /><br />
-          <input
-            type="number"
-            step="0.01"
-            placeholder="Betrag"
-            value={srBetrag}
-            onChange={(e) => setSrBetrag(e.target.value)}
-            style={styles.input}
-          /><br />
-          <input
-            type="date"
-            value={srAnfang}
-            onChange={(e) => setSrAnfang(e.target.value)}
-            style={styles.input}
-          /><br />
-          <input
-            type="date"
-            value={srEnde}
-            onChange={(e) => setSrEnde(e.target.value)}
-            style={styles.input}
-          /><br />
-          <button style={styles.button} type="submit">Hinzufügen</button>
-        </form>
-
-        <ul>
-          {sparraten.map((sr) => (
-            <li key={sr.id}>
-              {sr.name} — {sr.betrag} € ({sr.anfangsdatum || "ab sofort"} bis {sr.enddatum || "unbegrenzt"})
-              <button
-                style={{ marginLeft: "10px", background: "red", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
-                onClick={() => handleDeleteSparrate(sr.id)}
-              >
-                löschen
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+        <Router> {/* <- Hier den Router um die App legen */}
+      <Routes>
+        <Route
+          path="/"
+          element={
 
 
+            <div style={styles.container}>
+            <div style={styles.header}>
+              <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
+            </div>
 
-      {/* Nachricht erstellen */}
-      <h2>Nachricht erstellen</h2>
-        <form onSubmit={handleAddNachricht}>
-          <input
-            type="text"
-            placeholder="Nachricht eingeben"
-            value={nachrichtText}
-            onChange={(e) => setNachrichtText(e.target.value)}
-            style={styles.input}
-          />
-          <button style={styles.button} type="submit">Senden</button>
-        </form>
+              {/* Sparziel – direkt unter dem Logout-Button */}
+              <div style={{ marginTop: "1.5rem" }}>
+                <Link to="/newpage">
+                  <img src={wb} alt="Logo" style={styles.wb}/>
+                </Link>
+                <form onSubmit={handleSubmitSparziel}>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Sparziel (Zahl)"
+                    value={sparziel}
+                    onChange={(e) => setSparziel(e.target.value)}
+                    style={styles.input}
+                  />
+                  <br />
+                  <button type="submit" style={styles.button}>
+                    Speichern
+                  </button>
+                </form>
+                {sparziel !== "" && <p>Aktuelles Sparziel: {sparziel}</p>}
+              </div>
 
-      <hr />
+              {/* Diagramm */}
+              <div style={{ marginTop: "30px" }}>
+                <h2 style={styles.subtitle}>Nachrichten pro Monat</h2>
+                  <LineChart width={600} height={300} data={datenDiagrammMitSumme}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="jahr" />
+                    <YAxis domain={[0, sparziel]} />
+                    <Tooltip />
+                    <Legend />
 
-      <ul>
-        {nachrichten.map((n) => (
-          <li key={n.id}>
-            <strong>{new Date(n.erstellt_am).toLocaleString()}</strong>
-            <br />
-            {n.text} {/* hier statt n.name | n.alter | n.groesse */}
-          </li>
-        ))}
-      </ul>
-    </div>
+                    {/* Sparziel-Linie */}
+                    <ReferenceLine y={sparziel} stroke="red" strokeDasharray="3 3" label="Sparziel" />
+
+                    {/* Dynamische Linien für Positionen */}
+                    {positionen.map((p) => (
+                      <Line
+                        key={p.id}
+                        type="monotone"
+                        dataKey={p.name}   // <-- wichtig: genau der gleiche Key wie in datenDiagramm
+                        stroke="#cc00ffff"
+                        dot={false}
+                      />
+                    ))}
+
+                    {/* Linie für Summe aller Positionen */}
+                    <Line
+                      type="monotone"
+                      dataKey="summePositionen"
+                      stroke="#00ff11ff"
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="summeSparraten"
+                      stroke="#0099ff"
+                      dot={false}
+                      strokeDasharray="4 4"
+                    />
+                  <Line
+                    type="monotone"
+                    dataKey="vermögen"
+                    stroke="#ff9900"
+                    dot={false}
+                  />
+                  </LineChart>
+
+              </div>
+
+              {/* Positionen – unter dem Diagramm */}
+              <div style={{ marginTop: "2rem" }}>
+                <h2>Positionen</h2>
+                <form onSubmit={handleAddPosition}>
+                  <input
+                    type="text"
+                    placeholder="Positionsname"
+                    value={posName}
+                    onChange={(e) => setPosName(e.target.value)}
+                    style={styles.input}
+                  />
+                  <br />
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Wert"
+                    value={posWert}
+                    onChange={(e) => setPosWert(e.target.value)}
+                    style={styles.input}
+                  />
+                  <br />
+                  <input
+                    type="date"
+                    placeholder="Anfangsdatum"
+                    value={posAnfang}
+                    onChange={(e) => setPosAnfang(e.target.value)}
+                    style={styles.input}
+                  />
+                  <br />
+                  <input
+                    type="date"
+                    placeholder="Enddatum"
+                    value={posEnde}
+                    onChange={(e) => setPosEnde(e.target.value)}
+                    style={styles.input}
+                  />
+                  <br />
+                  <button style={styles.button} type="submit">Hinzufügen</button>
+                </form>
+
+                <ul>
+                  {positionen.map((p) => (
+                    <li key={p.id}>
+                      {p.name} — {p.wert}  
+                      {p.anfangsdatum && ` | Anfang: ${p.anfangsdatum}`}  
+                      {p.enddatum ? ` | Ende: ${p.enddatum}` : " | Ende: offen"}
+                      <button
+                        style={{
+                          marginLeft: "10px",
+                          background: "red",
+                          color: "white",
+                          border: "none",
+                          padding: "5px 10px",
+                          borderRadius: "4px",
+                          cursor: "pointer"
+                        }}
+                        onClick={() => handleDeletePosition(p.id)}
+                      >
+                        löschen
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Sparraten – unter den Positionen */}
+              <div style={{ marginTop: "2rem" }}>
+                <h2>Sparraten</h2>
+                <form onSubmit={handleAddSparrate}>
+                  <input
+                    type="text"
+                    placeholder="Sparrate-Name"
+                    value={srName}
+                    onChange={(e) => setSrName(e.target.value)}
+                    style={styles.input}
+                  /><br />
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Betrag"
+                    value={srBetrag}
+                    onChange={(e) => setSrBetrag(e.target.value)}
+                    style={styles.input}
+                  /><br />
+                  <input
+                    type="date"
+                    value={srAnfang}
+                    onChange={(e) => setSrAnfang(e.target.value)}
+                    style={styles.input}
+                  /><br />
+                  <input
+                    type="date"
+                    value={srEnde}
+                    onChange={(e) => setSrEnde(e.target.value)}
+                    style={styles.input}
+                  /><br />
+                  <button style={styles.button} type="submit">Hinzufügen</button>
+                </form>
+
+                <ul>
+                  {sparraten.map((sr) => (
+                    <li key={sr.id}>
+                      {sr.name} — {sr.betrag} € ({sr.anfangsdatum || "ab sofort"} bis {sr.enddatum || "unbegrenzt"})
+                      <button
+                        style={{ marginLeft: "10px", background: "red", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
+                        onClick={() => handleDeleteSparrate(sr.id)}
+                      >
+                        löschen
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+
+
+              {/* Nachricht erstellen */}
+              <h2>Nachricht erstellen</h2>
+                <form onSubmit={handleAddNachricht}>
+                  <input
+                    type="text"
+                    placeholder="Nachricht eingeben"
+                    value={nachrichtText}
+                    onChange={(e) => setNachrichtText(e.target.value)}
+                    style={styles.input}
+                  />
+                  <button style={styles.button} type="submit">Senden</button>
+                </form>
+
+              <hr />
+
+              <ul>
+                {nachrichten.map((n) => (
+                  <li key={n.id}>
+                    <strong>{new Date(n.erstellt_am).toLocaleString()}</strong>
+                    <br />
+                    {n.text} {/* hier statt n.name | n.alter | n.groesse */}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+              }
+        />
+
+        <Route path="/newpage" element={<NewPage />} />
+      </Routes>
+    </Router>
   );
 }
 
