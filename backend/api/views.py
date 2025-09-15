@@ -93,3 +93,18 @@ class UserProfileView(APIView):
             "username": request.user.username,
             "level": profile.level,
         })
+    def post(self, request):
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+        action = request.data.get("action", "increase")  # default = erhöhen
+
+        if action == "increase":
+            profile.level += 1
+        elif action == "decrease" and profile.level > 1:  # nicht kleiner als 1
+            profile.level -= 1
+
+        profile.save()
+        return Response({
+            "username": request.user.username,
+            "level": profile.level,
+        })

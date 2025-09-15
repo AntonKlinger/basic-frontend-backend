@@ -19,6 +19,39 @@ function NewPage() {
     }
   }, []);
 
+  // Level um eins erhöhen
+  const increaseLevel = () => {
+    const token = localStorage.getItem("token");
+
+    fetch(`${API_BASE_URL}/api/me/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setLevel(data.level))  // direkt Level updaten
+      .catch((err) => console.error(err));
+  };
+
+  // Level um eins senken
+  const decreaseLevel = () => {
+    const token = localStorage.getItem("token");
+
+    fetch(`${API_BASE_URL}/api/me/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action: "decrease" }),
+    })
+      .then((res) => res.json())
+      .then((data) => setLevel(data.level))
+      .catch((err) => console.error(err));
+  };
+
   return (
     <div style={styles.container}>
       <Link to="/">⬅ Zurück zur Homepage</Link>
@@ -26,24 +59,40 @@ function NewPage() {
       {level === 1 && (
         <div style={styles.largeBox}>
           <h4>Hast du bereits ein Aktienportfolio?</h4>
+          <button style={styles.button} onClick={increaseLevel}>
+            Weiter
+          </button>
         </div>
       )}
 
       {level === 2 && (
         <div style={styles.largeBox}>
-          <h4>Hast du bereits 1000 Euro auf deinem Aktienportfolio?</h4>
+          <h4>Hast du bereits 100 Euro auf deinem Aktienportfolio?</h4>
+          <button style={styles.button} onClick={increaseLevel}>
+            Weiter
+          </button>
         </div>
       )}
 
       {level === 3 && (
         <div style={styles.largeBox}>
           <h4>Hast du bereits 10000 Euro auf deinem Aktienportfolio?</h4>
+          <button style={styles.button} onClick={increaseLevel}>
+            Weiter
+          </button>
+          <button style={styles.button} onClick={decreaseLevel}>
+            Zurück
+          </button>
         </div>
       )}
 
       {level === 4 && (
         <div style={styles.largeBox}>
           <h4>Hast du bereits 100000 Euro auf deinem Aktienportfolio?</h4>
+          {/* Optional: ab Level 4 keinen Button mehr anzeigen */}
+          <button style={styles.button} onClick={decreaseLevel}>
+            Zurück
+          </button>
         </div>
       )}
     </div>
