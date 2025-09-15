@@ -16,20 +16,30 @@ function App() {
   };
 
   return (
-    <Router>
-      {!token ? (
-        mode === "login" ? (
-          <LoginPage setToken={setToken} switchToRegister={() => setMode("register")} />
-        ) : (
-          <RegisterPage switchToLogin={() => setMode("login")} />
-        )
-      ) : (
-        <Routes>
-          <Route path="/" element={<MainPage token={token} handleLogout={handleLogout} />} />
-          <Route path="/newpage" element={<NewPage />} />
-        </Routes>
-      )}
-    </Router>
+//    <Router>
+//      {!token ? (
+//        mode === "login" ? (
+//          <LoginPage setToken={setToken} switchToRegister={() => setMode("register")} />
+//        ) : (
+//          <RegisterPage switchToLogin={() => setMode("login")} />
+//        )
+//      ) : (
+//        <Routes>
+//          <Route path="/" element={<MainPage token={token} handleLogout={handleLogout} />} />
+//          <Route path="/newpage" element={<NewPage />} />
+//        </Routes>
+//      )}
+//    </Router>
+  <Router>
+    {!token ? (
+      <LoginPage setToken={setToken} />
+    ) : (
+      <Routes>
+        <Route path="/" element={<MainPage token={token} handleLogout={handleLogout} />} />
+        <Route path="/newpage" element={<NewPage />} />
+      </Routes>
+    )}
+  </Router>
   );
 }
 
