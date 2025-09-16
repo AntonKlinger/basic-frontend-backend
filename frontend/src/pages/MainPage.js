@@ -135,63 +135,67 @@ function MainPage({ token, handleLogout }) {
     }
   };
 
-  // -------------------- Diagramm-Daten --------------------
-  const daten = Array.from({ length: 10 }, (_, i) => ({
-    jahr: 2025 + i,
-    nachrichten: Math.floor(Math.random() * 10)
-  }));
+  // -------------------- Diagramm-Daten (monatlich) --------------------
+  const datenDiagramm = [];
+
+  // Hilfsfunktion: Anzahl der Nachrichten pro Monat ermitteln
+  const nachrichtenProMonat = (jahr, monat) => {
+    return nachrichten.filter(n => {
+      const datum = new Date(n.erstellt_am);
+      return datum.getFullYear() === jahr && datum.getMonth() + 1 === monat;
+    }).length;
+  };
 
   let kumulierteSparraten = 0;
-  const datenDiagramm = Array.from({ length: 10 * 12 }, (_, i) => {
-    const jahr = 2025 + Math.floor(i / 12);
-    const monat = (i % 12) + 1;
-    const stichtag = new Date(jahr, monat - 1, 1);
 
-    const punkt = {
-      jahr,
-      monat,
-      label: `${monat.toString().padStart(2,"0")}.${jahr}`,
-      nachrichten: daten[i]?.nachrichten ?? 0
-    };
+  for (let jahr = 2025; jahr < 2035; jahr++) { // 10 Jahre
+    for (let monat = 1; monat <= 12; monat++) {
+      const stichtag = new Date(jahr, monat - 1, 1);
 
-    // Positionen verarbeiten
-    let summePositionen = 0;
-    positionen.forEach(p => {
-      const anfang = p.anfangsdatum ? new Date(p.anfangsdatum) : null;
-      const ende = p.enddatum ? new Date(p.enddatum) : null;
-      const aktiv = (!anfang || stichtag >= anfang) && (!ende || stichtag <= ende);
-      if (aktiv) {
-        const monateSeitStart = (jahr - 2025) * 12 + (monat - 1);
-        const wert = p.wert * Math.pow(1.01, monateSeitStart);
-        punkt[p.name] = wert;
-        summePositionen += wert;
-      } else {
-        punkt[p.name] = 0;
-      }
-    });
+      const punkt = {
+        jahr,
+        monat,
+        label: `${monat.toString().padStart(2,"0")}.${jahr}`,
+        nachrichten: nachrichtenProMonat(jahr, monat)
+      };
 
-    // Sparraten verarbeiten
-    let summeSparraten = 0;
-    sparraten.forEach(s => {
-      const anfang = s.anfangsdatum ? new Date(s.anfangsdatum) : null;
-      const ende = s.enddatum ? new Date(s.enddatum) : null;
-      const aktiv = (!anfang || stichtag >= anfang) && (!ende || stichtag <= ende);
-      if (aktiv) summeSparraten += s.betrag;
-    });
+      // Positionen verarbeiten
+      let summePositionen = 0;
+      positionen.forEach(p => {
+        const anfang = p.anfangsdatum ? new Date(p.anfangsdatum) : null;
+        const ende = p.enddatum ? new Date(p.enddatum) : null;
+        const aktiv = (!anfang || stichtag >= anfang) && (!ende || stichtag <= ende);
+        if (aktiv) {
+          const monateSeitStart = (jahr - 2025) * 12 + (monat - 1);
+          const wert = p.wert * Math.pow(1.01, monateSeitStart); // fiktives Wachstum
+          punkt[p.name] = wert;
+          summePositionen += wert;
+        } else {
+          punkt[p.name] = 0;
+        }
+      });
 
-    punkt.summeSparraten = summeSparraten;
-    kumulierteSparraten += summeSparraten;
-    punkt.summePositionen = summePositionen;
-    punkt.vermögen = summePositionen + kumulierteSparraten;
+      // Sparraten verarbeiten
+      let summeSparraten = 0;
+      sparraten.forEach(s => {
+        const anfang = s.anfangsdatum ? new Date(s.anfangsdatum) : null;
+        const ende = s.enddatum ? new Date(s.enddatum) : null;
+        const aktiv = (!anfang || stichtag >= anfang) && (!ende || stichtag <= ende);
+        if (aktiv) summeSparraten += s.betrag;
+      });
 
-    return punkt;
-  });
+      punkt.summeSparraten = summeSparraten;
+      kumulierteSparraten += summeSparraten;
+      punkt.summePositionen = summePositionen;
+      punkt.vermögen = summePositionen + kumulierteSparraten;
+
+      datenDiagramm.push(punkt);
+    }
+  }
 
   const datenDiagrammMitSumme = datenDiagramm.map(item => {
     const summePositionen = positionen.reduce((acc, pos) => {
-      const key = pos.name;
-      const wert = item[key] || 0;
-      return acc + wert;
+      return acc + (item[pos.name] || 0);
     }, 0);
     return { ...item, summePositionen };
   });
@@ -202,46 +206,63 @@ function MainPage({ token, handleLogout }) {
       <div style={styles.header}>
         <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
       </div>
-        <div style={styles.largeBox}>
-            <Link to="/newpage">
-                <img src={wb} alt="Logo" style={styles.wb}/>
-            </Link>
-            <form onSubmit={handleSubmitSparziel}>
-                <input
-                type="number"
-                step="0.01"
-                placeholder="Sparziel (Zahl)"
-                value={sparziel}
-                onChange={e => setSparziel(e.target.value)}
-                style={styles.input}
-                />
-                <button type="submit" style={styles.button}>Speichern</button>
-            </form>
-            {sparziel && <p>Aktuelles Sparziel: {sparziel}</p>}
-        </div>
-
-
-      {/* Sparziel */}
-
+      <div style={styles.largeBox}>
+        <Link to="/newpage">
+          <img src={wb} alt="Logo" style={styles.wb}/>
+        </Link>
+        <form onSubmit={handleSubmitSparziel}>
+          <input
+            type="number"
+            step="0.01"
+            placeholder="Sparziel (Zahl)"
+            value={sparziel}
+            onChange={e => setSparziel(e.target.value)}
+            style={styles.input}
+          />
+          <button type="submit" style={styles.button}>Speichern</button>
+        </form>
+        {sparziel && <p>Aktuelles Sparziel: {sparziel}</p>}
+      </div>
 
       {/* Diagramm */}
       <div style={styles.largeBox}>
         <h2 style={styles.subtitle}>Nachrichten pro Monat</h2>
         <ResponsiveContainer width="100%" height={300}>
-            <LineChart width={600} height={300} data={datenDiagrammMitSumme}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="jahr" />
-            <YAxis domain={[0, sparziel]} />
-            <Tooltip />
+          <LineChart width={600} height={300} data={datenDiagrammMitSumme}>
+            <XAxis dataKey="label" axisLine={false} tickLine={false} />
+            <YAxis domain={[0, sparziel]} axisLine={false} tickLine={false} />
+            <Tooltip
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div
+                      style={{
+                        background: "white",
+                        border: "1px solid #ccc",
+                        padding: "5px",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      {payload.map((entry, index) => (
+                        <div key={index} style={{ color: entry.color }}>
+                          {Number(entry.value).toFixed(0)}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
             <Legend />
             <ReferenceLine y={sparziel} stroke="red" strokeDasharray="3 3" label="Sparziel" />
             {positionen.map(p => (
-                <Line key={p.id} type="monotone" dataKey={p.name} stroke="#cc00ffff" dot={false} />
+              <Line key={p.id} type="monotone" dataKey={p.name} stroke="#cc00ffff" dot={false} />
             ))}
             <Line type="monotone" dataKey="summePositionen" stroke="#00ff11ff" dot={false} />
             <Line type="monotone" dataKey="summeSparraten" stroke="#0099ff" dot={false} strokeDasharray="4 4" />
             <Line type="monotone" dataKey="vermögen" stroke="#ff9900" dot={false} />
-            </LineChart>
+          </LineChart>
         </ResponsiveContainer>
       </div>
 
